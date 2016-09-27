@@ -113,6 +113,7 @@ class HTTPClient(object):
 		print("args= " + str(args) + "\n")
 		get_host_port(self,url)
 		connect(self, self.host, self.port)
+		recvall(self, clientSocket)
 
 	     	return self.GET( url, args )
     
