@@ -24,6 +24,7 @@ import re
 # you may use urllib to encode data appropriately
 import urllib
 
+
 def help():
     print "httpclient.py [GET/POST] [URL]\n"
 
@@ -33,10 +34,30 @@ class HTTPResponse(object):
         self.body = body
 
 class HTTPClient(object):
-    #def get_host_port(self,url):
+    def get_host_port(self,url):
+	from urlparse import urlparse
+	input_parse = urlparse(url)
+
+	#test
+	print("scheme= " + input_parse.scheme + "\n")
+	print("Network location= " + input_parse.netloc + "\n")
+	print("port= " + str(input_parse.port) + "\n")
+	print("host name= " + input_parse.hostname + "\n")
+	print("path= " + input_parse.path + "\n")
+	print("query= " + input_parse.query + "\n")
+
+	return input_parse.port
 
     def connect(self, host, port):
         # use sockets!
+
+	#code from lab2
+	clientSocket.bind(("0.0.0.0",8001))
+	clientSocket = socket.socket((host,port), socket.SOCK_STREAM)
+	clientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	
+	(incomingSocket, address) = clientSocket.accept()
+	print "we got a connetion from %s!" % (str(address))
+
         return None
 
     def get_code(self, data):
@@ -68,13 +89,31 @@ class HTTPClient(object):
     def POST(self, url, args=None):
         code = 500
         body = ""
-        return HTTPResponse(code, body)
+	return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
-            return self.POST( url, args )
+		#test
+		print("command= " + command + "\n")
+		print("url= " + url + "\n")
+		print("args= " + str(args) + "\n")
+		host_port = self.get_host_port(url)
+
+		print("host_port= " + str(host_port) + "\n")
+		
+		return self.POST( url, args )
         else:
-            return self.GET( url, args )
+
+		#test
+		print("command= " + command + "\n")
+		print("url= " + url + "\n")
+		print("args= " + str(args) + "\n")
+       
+		host_port = self.get_host_port(url)
+
+		print("host_port= " + str(host_port) + "\n")
+
+	     	return self.GET( url, args )
     
 if __name__ == "__main__":
     client = HTTPClient()
