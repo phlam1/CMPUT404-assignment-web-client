@@ -23,13 +23,13 @@ import socket
 import re
 # you may use urllib to encode data appropriately
 import urllib
-import urllib2
+
 
 def help():
     print "httpclient.py [GET/POST] [URL]\n"
 
 class HTTPResponse(object):
-    def __init__(self, code=200, body=""):
+    def __init__(self, code=200, body="HTTPRESPONSE"):
         self.code = code
         self.body = body
 
@@ -38,7 +38,7 @@ class HTTPClient(object):
         from urlparse import urlparse
         input_url = urlparse(url)
 
-        return input_url.port, input_url.hostname
+        return input_url.port, input_url.hostname, input_url.path, input_url.query
         
     def connect(self, host, port):
         # use sockets!
@@ -58,12 +58,18 @@ class HTTPClient(object):
     	
     	#test
     	print("We have connected to host " + str(host) + " and port " + str(port) + "\n")
-    	
+    	print(self.full_request)
+    	self.destinationSocket.sendall(self.full_request)
+        self.recvall(self.destinationSocket)
         return None
 
     def get_code(self, data):
+    	code_line = data.split()
+    	print code_line[1]
+    	self.code = code_line[1]
         return None
 
+    #Not sure what this is suppose to do --> create the headers for socket?
     def get_headers(self,data):
         return None
 
@@ -72,18 +78,30 @@ class HTTPClient(object):
 
     # read everything from the socket
     def recvall(self, sock):
+    
+    	#test
+    	print("Now reading sock")
         buffer = bytearray()
         done = False
         while not done:
-            part = sock.recv(1024)
-            if (part):
-                buffer.extend(part)
-            else:
-                done = not part
-        return str(buffer)
+            skip = False
+            try:
+            	part = sock.recv(1024)
+            except socket.error, exception:
+            	if exception.errno == 11:
+            		skip = True
+            	else:
+            		raise
+            if not skip:
+            	if (part):
+                	buffer.extend(part)
+            	else:
+                	done = not part
+        print str(buffer)
+        self.data = str(buffer)
 
     def GET(self, url, args=None):
-        code = 500
+        code = args
         body = ""
         return HTTPResponse(code, body)
 
@@ -94,15 +112,28 @@ class HTTPClient(object):
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
-            port, host = self.get_host_port(url)
+            port, host, path, query = self.get_host_port(url)
             print "This is the port " + str(port) +  " This is the host " + str(host) + "\n"
+            req = command + ' /' + path + ' ' + 'HTTP/1.1\r\n'
+            headers = "Content-Type: application/x-www-form-urlencoded\r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "\r\n"
+            self.full_request = req + headers
             self.connect(host, port)
-            return self.POST( url, args )
+            
         else:
-            port, host = self.get_host_port(url)
+            port, host, path, query  = self.get_host_port(url)
             print "This is the port " + str(port) + " This is the host " + str(host) + "\n"
+            req = command + ' / ' + path + ' ' + 'HTTP/1.1\r\n'
+            headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "\r\n"
+            
+            #set up default port
+            if (port == None):
+            	port = 80
+            
+            self.full_request = req + headers
             self.connect(host, port)
-            return self.GET( url, args )
+            self.get_code(self.data)
+            self.GET(url, self.code)
+ 
     
 if __name__ == "__main__":
     client = HTTPClient()
@@ -113,6 +144,6 @@ if __name__ == "__main__":
     elif (len(sys.argv) == 3):
         print client.command( sys.argv[2], sys.argv[1] )
     else:
-        print client.command( sys.argv[1] )   
+	print client.command( sys.argv[1] )
 
 
