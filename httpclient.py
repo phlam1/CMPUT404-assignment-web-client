@@ -23,6 +23,7 @@ import socket
 import re
 # you may use urllib to encode data appropriately
 import urllib
+import urllib2
 
 def help():
     print "httpclient.py [GET/POST] [URL]\n"
@@ -42,11 +43,22 @@ class HTTPClient(object):
     def connect(self, host, port):
         # use sockets!
         #code from lab2
-    	self.clientSocket = socket.socket((host,port), socket.SOCK_STREAM)
-    	self.clientSocket.bind(("0.0.0.0",8001))
-    	self.clientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	
-    	(incomingSocket, address) = self.clientSocket.accept()
-    	print "we got a connetion from %s!" % (str(address))
+        
+        #Do we really need an incoming socket?
+        #========================================
+    	#self.clientSocket = socket.socket((host,port), socket.SOCK_STREAM)
+    	#self.clientSocket.bind(("0.0.0.0",8001))
+    	#self.clientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	
+    	#(incomingSocket, address) = self.clientSocket.accept()
+    	#print "we got a connetion from %s!" % (str(address))
+    	
+    	self.destinationSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    	self.destinationSocket.connect((host,port))
+    	self.destinationSocket.setblocking(0)
+    	
+    	#test
+    	print("We have connected to host " + str(host) + " and port " + str(port) + "\n")
+    	recvall(destinationSocket)
         return None
 
     def get_code(self, data):
@@ -83,11 +95,13 @@ class HTTPClient(object):
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
             port, host = self.get_host_port(url)
-            print "This is the port " + str(port) +  " This is the host " + str(host)
+            print "This is the port " + str(port) +  " This is the host " + str(host) + "\n"
+            self.connect(host, port)
             return self.POST( url, args )
         else:
             port, host = self.get_host_port(url)
-            print "This is the port " + str(port) + " This is the host " + str(host)
+            print "This is the port " + str(port) + " This is the host " + str(host) + "\n"
+            self.connect(host, port)
             return self.GET( url, args )
     
 if __name__ == "__main__":
