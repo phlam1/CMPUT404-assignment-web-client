@@ -35,31 +35,32 @@ class HTTPResponse(object):
 
 class HTTPClient(object):
     def get_host_port(self,url):
-	from urlparse import urlparse
-	input_parse = urlparse(url)
-
-	#test
-	print("scheme= " + input_parse.scheme + "\n")
-	print("Network location= " + input_parse.netloc + "\n")
-	print("port= " + str(input_parse.port) + "\n")
-	print("host name= " + input_parse.hostname + "\n")
-	print("path= " + input_parse.path + "\n")
-	print("query= " + input_parse.query + "\n")
+    	from urlparse import urlparse
+    	input_parse = urlparse(url)
+    
+    	#test
+    	print("scheme= " + input_parse.scheme + "\n")
+    	print("Network location= " + input_parse.netloc + "\n")
+    	print("port= " + str(input_parse.port) + "\n")
+    	print("host name= " + input_parse.hostname + "\n")
+    	print("path= " + input_parse.path + "\n")
+    	print("query= " + input_parse.query + "\n")
+    	
+    	#self.host = input_parse.hostname
+    	#self.port = input_parse.port
+	    
 	
-	self.host = input_parse.hostname
-	self.port = input_parse.port
-	
-	return None
+    	return self.port
 
     def connect(self, host, port):
         # use sockets!
 
-	#code from lab2
-	clientSocket.bind(("0.0.0.0",8001))
-	clientSocket = socket.socket((host,port), socket.SOCK_STREAM)
-	clientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	
-	(incomingSocket, address) = clientSocket.accept()
-	print "we got a connetion from %s!" % (str(address))
+    	#code from lab2
+    	self.clientSocket = socket.socket((host,port), socket.SOCK_STREAM)
+    	self.clientSocket.bind(("0.0.0.0",8001))
+    	self.clientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	
+    	(incomingSocket, address) = self.clientSocket.accept()
+    	print "we got a connetion from %s!" % (str(address))
 
         return None
 
@@ -96,24 +97,28 @@ class HTTPClient(object):
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
-		#test
-		print("command= " + command + "\n")
-		print("url= " + url + "\n")
-		print("args= " + str(args) + "\n")
-		get_host_port(self,url)
-		connect(self, self.host, self.port)
-		recvall(self, clientSocket)
-		
-		return self.POST( url, args )
+    		#test
+    		print("command= " + command + "\n")
+    		print("url= " + url + "\n")
+    		print("args= " + str(args) + "\n")
+    	
+    		self.port = (self.get_host_port(url))
+    		#self.connect(self.host, self.port)
+    		#self.recvall(self.clientSocket)
+    		
+    		return self.POST( url, args )
         else:
 
 		#test
-		print("command= " + command + "\n")
-		print("url= " + url + "\n")
-		print("args= " + str(args) + "\n")
-		get_host_port(self,url)
-		connect(self, self.host, self.port)
-		recvall(self, clientSocket)
+    		print("command= " + command + "\n")
+    		#print("url= " + url + "\n")
+    		print("args= " + str(args) + "\n")
+    
+    		self.port = (self.get_host_port(url))
+    		#self.connect(self.host, self.port)
+    		#self.recvall(self.clientSocket)
+    		#self.connect(self.host, self.port)
+    		#self.recvall(self.clientSocket)
 
 	     	return self.GET( url, args )
     
@@ -127,3 +132,4 @@ if __name__ == "__main__":
         print client.command( sys.argv[2], sys.argv[1] )
     else:
         print client.command( sys.argv[1] )   
+
