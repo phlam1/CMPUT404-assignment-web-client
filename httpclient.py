@@ -29,7 +29,7 @@ def help():
     print "httpclient.py [GET/POST] [URL]\n"
 
 class HTTPResponse(object):
-    def __init__(self, code=200, body="HTTPRESPONSE"):
+    def __init__(self, code=500, body="HTTPRESPONSE"):
         self.code = code
         self.body = body
 
@@ -46,7 +46,10 @@ class HTTPClient(object):
 	print "This is the port " + str(port) + " This is the host " + str(host) + "\n"
 
     	self.destinationSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    	self.destinationSocket.connect((host,port))
+    	try:
+    		self.destinationSocket.connect((host,port))
+    	except Exception as e:
+    		self.code = 404
     	self.destinationSocket.setblocking(0)
     	
     	#test
@@ -60,7 +63,7 @@ class HTTPClient(object):
     def get_code(self, data):
     	code_line = data.split()
     	print("get_code --> " + str(code_line[1]) + "\n")
-    	self.code = code_line[1]
+    	self.code = int(code_line[1])
         return None
 
     #Not sure what this is suppose to do --> create the headers for socket?
@@ -68,17 +71,11 @@ class HTTPClient(object):
         return None
 
     def get_body(self, data):
-    	#try:
-	#	start = data.index("<!DOCTYPE html>")
-	#except ValueError:
-	#	try:
-	#		start = data.index("<!doctype html>")
-	#	except ValueError:
-	#		start = data.index("<html>")
-	
-	self.body = data[start:]
-	print ("get_body --> " + self.body)
-        return None
+    	index = data.index("\r\n\r\n")
+    	print ("index --> " + str(index) +"\n")
+    	body = data[index+4:]
+    	print ("body --> " + body + "\n")
+    	self.body = body
 
     # read everything from the socket
     def recvall(self, sock):
@@ -106,41 +103,79 @@ class HTTPClient(object):
         self.data = str(buffer)
 
     def GET(self, url, args=None):
-        code = 500
-        body = ""
-        return HTTPResponse(code, body)
-
+    	port, host, path, query  = self.get_host_port(url)
+        if path == "" or path == "/":
+        	req = 'GET / HTTP/1.1\r\n'
+        else:
+            	req = 'GET /' + path + ' HTTP/1.1\r\n'
+        headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n\r\n"
+    
+        #set up default port
+        if (port == None):
+        	port = 80
+            
+        self.full_request = req + headers
+        self.connect(host, port)
+        self.get_code(self.data)
+        self.get_body(self.data)
+        return HTTPResponse(self.code, self.body)
+        
+        
     def POST(self, url, args=None):
-        code = 500
-        body = ""
-        return HTTPResponse(code, body)
+    	port, host, path, query  = self.get_host_port(url)
+    	encoded = urllib.urlencode(args)
+    	
+        if path == "" or path == "/":
+        	req = 'POST / HTTP/1.1\r\n'
+        else:
+            	req = 'POST /' + path + ' HTTP/1.1\r\n'
+        headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "Content-Length: " + str(len(args)) + "\r\n" + "Content-Type: application/x-www-form-urlencoded\r\n\r\n %s" % encoded
+        #headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n\r\n"
+    
+        #set up default port
+        if (port == None):
+        	port = 80
+            
+        self.full_request = req + headers
+        self.connect(host, port)
+        self.get_code(self.data)
+        self.get_body(self.data)
+        return HTTPResponse(self.code, self.body)
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
-            port, host, path, query = self.get_host_port(url)
-            print "This is the port " + str(port) +  " This is the host " + str(host) + "\n"
-            req = command + ' / ' + path + ' ' + 'HTTP/1.1\r\n'
-            headers = "Content-Type: application/x-www-form-urlencoded\r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "\r\n"
-            self.full_request = req + headers
-            self.connect(host, port)
-            
+            print("command url --> " + url)
+            return self.POST( url, args )
         else:
-            port, host, path, query  = self.get_host_port(url)
-            if path == "":
-            	req = 'GET / HTTP/1.1\r\n'
-            else:
-            	req = 'GET / ' + path + ' ' + 'HTTP/1.1\r\n'
-            headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n\r\n"
-    
-            #set up default port
-            if (port == None):
-            	port = 80
+            print("command url --> " + url)
+            return self.GET( url, args )
             
-            self.full_request = req + headers
-            self.connect(host, port)
-            self.get_code(self.data)
-	    self.get_body(self.data)
-            #self.GET(url, self.code)
+        #legacy code
+#        if (command == "POST"):
+#            port, host, path, query = self.get_host_port(url)
+#            print "This is the port " + str(port) +  " This is the host " + str(host) + "\n"
+#            req = command + ' / ' + path + ' ' + 'HTTP/1.1\r\n'
+#            headers = "Content-Type: application/x-www-form-urlencoded\r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "\r\n"
+#            self.full_request = req + headers
+#            self.connect(host, port)
+#            
+#        else:
+#            port, host, path, query  = self.get_host_port(url)
+#            if path == "":
+#            	req = 'GET / HTTP/1.1\r\n'
+#            else:
+#            	req = 'GET / ' + path + ' ' + 'HTTP/1.1\r\n'
+#            headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n\r\n"
+#    
+#            #set up default port
+#            if (port == None):
+#            	port = 80
+#            
+#            self.full_request = req + headers
+#            self.connect(host, port)
+#            self.get_code(self.data)
+#	    self.get_body(self.data)
+#            #self.GET(url, self.code)
  
     
 if __name__ == "__main__":
