@@ -43,29 +43,21 @@ class HTTPClient(object):
     def connect(self, host, port):
         # use sockets!
         #code from lab2
-        
-        #Do we really need an incoming socket?
-        #========================================
-    	#self.clientSocket = socket.socket((host,port), socket.SOCK_STREAM)
-    	#self.clientSocket.bind(("0.0.0.0",8001))
-    	#self.clientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	
-    	#(incomingSocket, address) = self.clientSocket.accept()
-    	#print "we got a connetion from %s!" % (str(address))
-    	
+
     	self.destinationSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     	self.destinationSocket.connect((host,port))
     	self.destinationSocket.setblocking(0)
     	
     	#test
-    	print("We have connected to host " + str(host) + " and port " + str(port) + "\n")
     	print(self.full_request)
+
     	self.destinationSocket.sendall(self.full_request)
         self.recvall(self.destinationSocket)
         return None
 
     def get_code(self, data):
     	code_line = data.split()
-    	print code_line[1]
+    	print("get_code --> " + str(code_line[1]) + "\n")
     	self.code = code_line[1]
         return None
 
@@ -74,6 +66,8 @@ class HTTPClient(object):
         return None
 
     def get_body(self, data):
+	start = data.index("<HTML>")
+	self.body = data[start:]
         return None
 
     # read everything from the socket
@@ -97,11 +91,11 @@ class HTTPClient(object):
                 	buffer.extend(part)
             	else:
                 	done = not part
-        print str(buffer)
+        print ("buffer from socket --> " + str(buffer) + "\n")
         self.data = str(buffer)
 
     def GET(self, url, args=None):
-        code = args
+        code = 500
         body = ""
         return HTTPResponse(code, body)
 
@@ -123,8 +117,8 @@ class HTTPClient(object):
             port, host, path, query  = self.get_host_port(url)
             print "This is the port " + str(port) + " This is the host " + str(host) + "\n"
             req = command + ' / ' + path + ' ' + 'HTTP/1.1\r\n'
-            headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "\r\n"
-            
+            headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n\r\n"
+    
             #set up default port
             if (port == None):
             	port = 80
@@ -132,7 +126,8 @@ class HTTPClient(object):
             self.full_request = req + headers
             self.connect(host, port)
             self.get_code(self.data)
-            self.GET(url, self.code)
+	    self.get_body(self.data)
+            #self.GET(url, self.code)
  
     
 if __name__ == "__main__":
