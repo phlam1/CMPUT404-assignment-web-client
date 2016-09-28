@@ -68,10 +68,14 @@ class HTTPClient(object):
         return None
 
     def get_body(self, data):
-    	try:
-		start = data.index("<!DOCTYPE html>")
-	except ValueError:
-		start = data.index("<html>")
+    	#try:
+	#	start = data.index("<!DOCTYPE html>")
+	#except ValueError:
+	#	try:
+	#		start = data.index("<!doctype html>")
+	#	except ValueError:
+	#		start = data.index("<html>")
+	
 	self.body = data[start:]
 	print ("get_body --> " + self.body)
         return None
