@@ -40,15 +40,17 @@ class HTTPClient(object):
 
         return input_url.port, input_url.hostname, input_url.path, input_url.query
         
-    def connect(self, host, port):
+    def connect(self, host, port=80):
         # use sockets!
         #code from lab2
+	print "This is the port " + str(port) + " This is the host " + str(host) + "\n"
 
     	self.destinationSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     	self.destinationSocket.connect((host,port))
     	self.destinationSocket.setblocking(0)
     	
     	#test
+    	print("full_request below")
     	print(self.full_request)
 
     	self.destinationSocket.sendall(self.full_request)
@@ -66,8 +68,12 @@ class HTTPClient(object):
         return None
 
     def get_body(self, data):
-	start = data.index("<HTML>")
+    	try:
+		start = data.index("<!DOCTYPE html>")
+	except ValueError:
+		start = data.index("<html>")
 	self.body = data[start:]
+	print ("get_body --> " + self.body)
         return None
 
     # read everything from the socket
@@ -85,7 +91,8 @@ class HTTPClient(object):
             	if exception.errno == 11:
             		skip = True
             	else:
-            		raise
+            		print("Not found self.code = 404")
+            		self.code = 404
             if not skip:
             	if (part):
                 	buffer.extend(part)
@@ -115,8 +122,10 @@ class HTTPClient(object):
             
         else:
             port, host, path, query  = self.get_host_port(url)
-            print "This is the port " + str(port) + " This is the host " + str(host) + "\n"
-            req = command + ' / ' + path + ' ' + 'HTTP/1.1\r\n'
+            if path == "":
+            	req = 'GET / HTTP/1.1\r\n'
+            else:
+            	req = 'GET / ' + path + ' ' + 'HTTP/1.1\r\n'
             headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n\r\n"
     
             #set up default port
