@@ -24,6 +24,9 @@ import re
 # you may use urllib to encode data appropriately
 import urllib
 
+#What is virtual host?
+#Body?
+#get header?
 
 def help():
     print "httpclient.py [GET/POST] [URL]\n"
@@ -123,13 +126,21 @@ class HTTPClient(object):
         
     def POST(self, url, args=None):
     	port, host, path, query  = self.get_host_port(url)
-    	encoded = urllib.urlencode(args)
     	
+    	if (args != None):
+    		print("Args --> " + args)
+    		print("Query --> " + query)
+    		encoded = urllib.urlencode(args)
+    		print("Encoded --> " + encoded)
+    		headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "Content-Length: " + str(len(args)) + "\r\n" + "Content-Type: application/x-www-form-urlencoded\r\n\r\n %s" % encoded
+    	else:
+    		headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "Content-Length: 0\r\n" + "Content-Type: application/x-www-form-urlencoded\r\n\r\n"
+
         if path == "" or path == "/":
         	req = 'POST / HTTP/1.1\r\n'
         else:
             	req = 'POST /' + path + ' HTTP/1.1\r\n'
-        headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "Content-Length: " + str(len(args)) + "\r\n" + "Content-Type: application/x-www-form-urlencoded\r\n\r\n %s" % encoded
+
         #headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n\r\n"
     
         #set up default port
@@ -150,34 +161,6 @@ class HTTPClient(object):
             print("command url --> " + url)
             return self.GET( url, args )
             
-        #legacy code
-#        if (command == "POST"):
-#            port, host, path, query = self.get_host_port(url)
-#            print "This is the port " + str(port) +  " This is the host " + str(host) + "\n"
-#            req = command + ' / ' + path + ' ' + 'HTTP/1.1\r\n'
-#            headers = "Content-Type: application/x-www-form-urlencoded\r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "\r\n"
-#            self.full_request = req + headers
-#            self.connect(host, port)
-#            
-#        else:
-#            port, host, path, query  = self.get_host_port(url)
-#            if path == "":
-#            	req = 'GET / HTTP/1.1\r\n'
-#            else:
-#            	req = 'GET / ' + path + ' ' + 'HTTP/1.1\r\n'
-#            headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n\r\n"
-#    
-#            #set up default port
-#            if (port == None):
-#            	port = 80
-#            
-#            self.full_request = req + headers
-#            self.connect(host, port)
-#            self.get_code(self.data)
-#	    self.get_body(self.data)
-#            #self.GET(url, self.code)
- 
-    
 if __name__ == "__main__":
     client = HTTPClient()
     command = "GET"
