@@ -24,8 +24,6 @@ import re
 # you may use urllib to encode data appropriately
 import urllib
 
-#What is virtual host?
-#get header?
 
 def help():
     print "httpclient.py [GET/POST] [URL]\n"
@@ -62,8 +60,9 @@ class HTTPClient(object):
     	self.code = int(code_line[1])
         return None
 
-    #Not sure what this is suppose to do --> create the headers for socket?
     def get_headers(self,data):
+    	index = data.split("\r\n\r\n")
+    	self.headers = index[0]
         return None
 
     def get_body(self, data):
@@ -99,7 +98,7 @@ class HTTPClient(object):
         	req = 'GET / HTTP/1.1\r\n'
         else:
             	req = 'GET /' + path + ' HTTP/1.1\r\n'
-        headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n\r\n"
+        headers = "User-Agent: HTTPclient\r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n\r\n"
     
         #set up default port
         if (port == None):
@@ -107,8 +106,10 @@ class HTTPClient(object):
             
         self.full_request = req + headers
         self.connect(host, port)
+        print(self.data)
         self.get_code(self.data)
         self.get_body(self.data)
+        self.get_headers(self.data)
         return HTTPResponse(self.code, self.body)
         
         
@@ -117,7 +118,7 @@ class HTTPClient(object):
     	
     	if (args != None):
     		encoded = urllib.urlencode(args)
-    		headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "Content-Length: " + str(len(encoded)) + "\r\n" + "Content-Type: application/x-www-form-urlencoded\r\n\r\n" + encoded
+    		headers = "User-Agent: HTTPclient\r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "Content-Length: " + str(len(encoded)) + "\r\n" + "Content-Type: application/x-www-form-urlencoded\r\n\r\n" + encoded
     	else:
     		headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "Content-Length: 0\r\n" + "Content-Type: application/x-www-form-urlencoded\r\n\r\n"
 
@@ -134,8 +135,10 @@ class HTTPClient(object):
             
         self.full_request = req + headers
         self.connect(host, port)
+        print(self.data)
         self.get_code(self.data)
         self.get_body(self.data)
+        self.get_headers(self.data)
         return HTTPResponse(self.code, self.body)
 
     def command(self, url, command="GET", args=None):
