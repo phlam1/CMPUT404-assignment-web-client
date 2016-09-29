@@ -29,7 +29,7 @@ def help():
     print "httpclient.py [GET/POST] [URL]\n"
 
 class HTTPResponse(object):
-    def __init__(self, code=500, body="HTTPRESPONSE"):
+    def __init__(self, code=500, body="Server Error"):
         self.code = code
         self.body = body
 
@@ -61,6 +61,7 @@ class HTTPClient(object):
         return None
 
     def get_headers(self,data):
+    	#returns response headers
     	index = data.split("\r\n\r\n")
     	self.headers = index[0]
         return None
@@ -120,7 +121,7 @@ class HTTPClient(object):
     		encoded = urllib.urlencode(args)
     		headers = "User-Agent: HTTPclient\r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "Content-Length: " + str(len(encoded)) + "\r\n" + "Content-Type: application/x-www-form-urlencoded\r\n\r\n" + encoded
     	else:
-    		headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "Content-Length: 0\r\n" + "Content-Type: application/x-www-form-urlencoded\r\n\r\n"
+    		headers = "User-Agent: HTTPclient\r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "Content-Length: 0\r\n" + "Content-Type: application/x-www-form-urlencoded\r\n\r\n"
 
         if path == "" or path == "/":
         	req = 'POST / HTTP/1.1\r\n'
