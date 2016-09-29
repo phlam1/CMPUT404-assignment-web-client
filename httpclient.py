@@ -25,7 +25,6 @@ import re
 import urllib
 
 #What is virtual host?
-#Body?
 #get header?
 
 def help():
@@ -46,7 +45,6 @@ class HTTPClient(object):
     def connect(self, host, port=80):
         # use sockets!
         #code from lab2
-	print "This is the port " + str(port) + " This is the host " + str(host) + "\n"
 
     	self.destinationSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     	try:
@@ -55,17 +53,12 @@ class HTTPClient(object):
     		self.code = 404
     	self.destinationSocket.setblocking(0)
     	
-    	#test
-    	print("full_request below")
-    	print(self.full_request)
-
     	self.destinationSocket.sendall(self.full_request)
         self.recvall(self.destinationSocket)
         return None
 
     def get_code(self, data):
     	code_line = data.split()
-    	print("get_code --> " + str(code_line[1]) + "\n")
     	self.code = int(code_line[1])
         return None
 
@@ -74,17 +67,14 @@ class HTTPClient(object):
         return None
 
     def get_body(self, data):
-    	index = data.index("\r\n\r\n")
-    	print ("index --> " + str(index) +"\n")
-    	body = data[index+4:]
-    	print ("body --> " + body + "\n")
-    	self.body = body
+    	index = data.split("\r\n\r\n")
+    	self.body = index[1]
+    	
 
     # read everything from the socket
     def recvall(self, sock):
     
     	#test
-    	print("Now reading sock")
         buffer = bytearray()
         done = False
         while not done:
@@ -95,14 +85,12 @@ class HTTPClient(object):
             	if exception.errno == 11:
             		skip = True
             	else:
-            		print("Not found self.code = 404")
             		self.code = 404
             if not skip:
             	if (part):
                 	buffer.extend(part)
             	else:
                 	done = not part
-        print ("buffer from socket --> " + str(buffer) + "\n")
         self.data = str(buffer)
 
     def GET(self, url, args=None):
@@ -128,11 +116,8 @@ class HTTPClient(object):
     	port, host, path, query  = self.get_host_port(url)
     	
     	if (args != None):
-    		print("Args --> " + args)
-    		print("Query --> " + query)
     		encoded = urllib.urlencode(args)
-    		print("Encoded --> " + encoded)
-    		headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "Content-Length: " + str(len(args)) + "\r\n" + "Content-Type: application/x-www-form-urlencoded\r\n\r\n %s" % encoded
+    		headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "Content-Length: " + str(len(encoded)) + "\r\n" + "Content-Type: application/x-www-form-urlencoded\r\n\r\n" + encoded
     	else:
     		headers = "User-Agent:  \r\n" + "Host: " + host + "\r\n" + "Accept: */*\r\n" + "Content-Length: 0\r\n" + "Content-Type: application/x-www-form-urlencoded\r\n\r\n"
 
@@ -155,10 +140,8 @@ class HTTPClient(object):
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
-            print("command url --> " + url)
             return self.POST( url, args )
         else:
-            print("command url --> " + url)
             return self.GET( url, args )
             
 if __name__ == "__main__":
